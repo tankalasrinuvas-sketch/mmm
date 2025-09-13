@@ -1,0 +1,3097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindWell - Mental Health Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .mood-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .mood-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mood-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .mood-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .mood-emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .entry-btn {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .entry-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .entry-btn:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .entry-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+
+        .recommendations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .recommendation-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .recommendation-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .mood-history {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .mood-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .mood-entry:last-child {
+            border-bottom: none;
+        }
+
+        .sentiment-result {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .breathing-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 4s ease-in-out;
+        }
+
+        .breathing-circle.inhale {
+            transform: scale(1.3);
+        }
+
+        .breathing-circle.exhale {
+            transform: scale(0.8);
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .memory-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .memory-card.flipped {
+            background: #667eea;
+            color: white;
+        }
+
+        .memory-card.matched {
+            background: #4caf50;
+            color: white;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .color-btn {
+            width: 60px;
+            height: 60px;
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-canvas {
+            width: 100%;
+            height: 300px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: crosshair;
+        }
+
+        .affirmation-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .affirmation-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .game-controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .game-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .game-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .game-score {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .calendar-day {
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 10px;
+            min-height: 90px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .calendar-day::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .calendar-day:hover::before {
+            opacity: 1;
+        }
+
+        .calendar-day > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .calendar-day.today {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-color: #2196f3;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.3), 0 4px 15px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(33, 150, 243, 0.3), 0 4px 15px rgba(0, 0, 0, 0.1); }
+            50% { box-shadow: 0 0 30px rgba(33, 150, 243, 0.5), 0 6px 20px rgba(0, 0, 0, 0.15); }
+        }
+
+        .calendar-day.has-mood {
+            border-left: 5px solid #4caf50;
+            background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
+        }
+
+        .calendar-day.has-mood::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 0.8rem;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-container {
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.1), 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 200% 0; }
+            50% { background-position: -200% 0; }
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px 0;
+        }
+
+        .calendar-header h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-nav {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calendar-nav::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .calendar-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .calendar-nav:hover::before {
+            left: 100%;
+        }
+
+        .calendar-nav:active {
+            transform: translateY(0);
+        }
+
+        .calendar-day-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: #333;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+            transform: rotate(45deg) translate(50%, 50%);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .activity-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+        }
+
+        .activity-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .activity-type {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .activity-item {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin: 2px 0;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
+        }
+
+        .activity-btn {
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .activity-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .activity-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        .activity-btn:hover::before {
+            left: 100%;
+        }
+
+        .activity-btn.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .activity-form {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 25px 0;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.02);
+            border-radius: 15px;
+        }
+
+        .calendar-day.other-month {
+            background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%);
+            color: #adb5bd;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .mood-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .tab-btn {
+                width: 200px;
+                margin: 2px 0;
+            }
+
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .color-palette {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .breathing-circle {
+                width: 150px;
+                height: 150px;
+            }
+
+            .affirmation-text {
+                font-size: 1.2rem;
+            }
+        }
+
+        .diary-entry {
+            background: linear-gradient(135deg, #ffffff 0%, #fafbff 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.08), 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid transparent;
+            border-image: linear-gradient(135deg, #667eea, #764ba2, #f093fb) 1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: entry-slide-in 0.6s ease-out;
+        }
+
+        .diary-entry::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.02), rgba(118, 75, 162, 0.02));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .diary-entry:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.15), 0 5px 20px rgba(118, 75, 162, 0.1);
+        }
+
+        .diary-entry:hover::before {
+            opacity: 1;
+        }
+
+        .diary-entry > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .prompt-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08), rgba(240, 147, 251, 0.08));
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            border-radius: 18px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prompt-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+        }
+
+        .prompt-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2), 0 5px 15px rgba(118, 75, 162, 0.1);
+        }
+
+        .prompt-card:hover::before {
+            opacity: 1;
+        }
+
+        .prompt-card:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        .word-count {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.85rem;
+            color: #667eea;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 249, 255, 0.95));
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .word-count:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            color: #764ba2;
+        }
+
+        .diary-container {
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 50%, #fff5f8 100%);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15), 0 8px 25px rgba(118, 75, 162, 0.1);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .diary-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer-diary 3s infinite;
+            z-index: 1;
+        }
+
+        .diary-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 80px rgba(102, 126, 234, 0.2), 0 12px 35px rgba(118, 75, 162, 0.15);
+        }
+
+        .diary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .diary-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            border-radius: 1px;
+            animation: gradient-flow 3s ease-in-out infinite;
+        }
+
+        .diary-date {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            animation: text-glow 2s ease-in-out infinite;
+        }
+
+        .diary-date::before {
+            content: '✨';
+            position: absolute;
+            left: -30px;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        .diary-stat {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 18px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25), 0 3px 10px rgba(118, 75, 162, 0.15);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .diary-stat::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: stat-shine 3s infinite;
+            z-index: 1;
+        }
+
+        .diary-stat:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.3), 0 5px 15px rgba(118, 75, 162, 0.2);
+        }
+
+        .diary-stat > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .diary-stat-number {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            animation: number-pulse 2s ease-in-out infinite;
+        }
+
+        .diary-editor {
+            background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+            border: 3px solid transparent;
+            background-clip: padding-box;
+            border-radius: 20px;
+            padding: 25px;
+            min-height: 350px;
+            font-size: 17px;
+            line-height: 1.7;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            z-index: 2;
+            box-shadow: inset 0 2px 10px rgba(102, 126, 234, 0.05);
+        }
+
+        .diary-editor:focus {
+            outline: none;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            box-shadow: 
+                0 0 0 4px rgba(102, 126, 234, 0.15),
+                0 8px 25px rgba(102, 126, 234, 0.1),
+                inset 0 2px 10px rgba(102, 126, 234, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .diary-editor::placeholder {
+            color: #a0a0a0;
+            font-style: italic;
+        }
+
+        .prompt-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .prompt-text {
+            font-size: 0.95rem;
+            color: #555;
+            position: relative;
+            z-index: 2;
+            line-height: 1.4;
+        }
+
+        @keyframes shimmer-progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes shimmer-diary {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes gradient-flow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes text-glow {
+            0% { text-shadow: 0 0 5px rgba(102, 126, 234, 0.3); }
+            100% { text-shadow: 0 0 20px rgba(102, 126, 234, 0.6), 0 0 30px rgba(118, 75, 162, 0.4); }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+        }
+
+        @keyframes stat-shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        @keyframes number-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes entry-slide-in {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* AI Chat Styles */
+        .chat-container {
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 50%, #fff5f8 100%);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.15), 0 8px 25px rgba(118, 75, 162, 0.1);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            overflow: hidden;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            animation: gentle-pulse 2s ease-in-out infinite;
+        }
+
+        .chat-title {
+            flex: 1;
+        }
+
+        .chat-title h3 {
+            margin: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .chat-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: message-slide-in 0.5s ease-out;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.bot {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 80%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot .message-bubble {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            color: #333;
+            border-bottom-left-radius: 5px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 25px;
+            font-size: 0.95rem;
+            background: linear-gradient(135deg, #ffffff, #f8f9ff);
+            transition: all 0.3s ease;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .chat-send-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .chat-send-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .typing-indicator {
+            display: none;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        .typing-bubble {
+            display: inline-block;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 15px 20px;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: typing-bounce 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .quick-responses {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-response-btn {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            color: #667eea;
+        }
+
+        .quick-response-btn:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes message-slide-in {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 MindWell</h1>
+            <p>Your Personal Mental Health Companion</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('checkin')">Daily Check-in</button>
+            <button class="tab-btn" onclick="showTab('trends')">Mood Trends</button>
+            <button class="tab-btn" onclick="showTab('recommendations')">Wellness Tips</button>
+            <button class="tab-btn" onclick="showTab('games')">Wellness Games</button>
+            <button class="tab-btn" onclick="showTab('timetable')">Monthly Timetable</button>
+            <button class="tab-btn" onclick="showTab('diary')">Daily Diary</button>
+            <button class="tab-btn" onclick="showTab('chat')">AI Mood Coach</button>
+            <button class="tab-btn" onclick="showTab('history')">History</button>
+        </div>
+
+        <!-- Daily Check-in Tab -->
+        <div id="checkin" class="tab-content active">
+            <h2>How are you feeling today?</h2>
+            <div class="mood-selector">
+                <div class="mood-btn" data-mood="5" onclick="selectMood(5)">
+                    <span class="mood-emoji">😄</span>
+                    <span>Excellent</span>
+                </div>
+                <div class="mood-btn" data-mood="4" onclick="selectMood(4)">
+                    <span class="mood-emoji">😊</span>
+                    <span>Good</span>
+                </div>
+                <div class="mood-btn" data-mood="3" onclick="selectMood(3)">
+                    <span class="mood-emoji">😐</span>
+                    <span>Okay</span>
+                </div>
+                <div class="mood-btn" data-mood="2" onclick="selectMood(2)">
+                    <span class="mood-emoji">😔</span>
+                    <span>Low</span>
+                </div>
+                <div class="mood-btn" data-mood="1" onclick="selectMood(1)">
+                    <span class="mood-emoji">😢</span>
+                    <span>Very Low</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="moodNote">What's on your mind? (Optional)</label>
+                <textarea id="moodNote" class="form-control" rows="4" placeholder="Share your thoughts, feelings, or what happened today..."></textarea>
+            </div>
+
+            <div id="sentimentAnalysis" class="sentiment-result" style="display: none;">
+                <h4>Sentiment Analysis</h4>
+                <p id="sentimentText"></p>
+            </div>
+
+            <button class="btn" onclick="saveMoodEntry()">Save Today's Check-in</button>
+        </div>
+
+        <!-- Trends Tab -->
+        <div id="trends" class="tab-content">
+            <h2>Your Mood Journey</h2>
+            <div class="chart-container">
+                <canvas id="moodChart"></canvas>
+            </div>
+            <div id="trendInsights"></div>
+        </div>
+
+        <!-- Recommendations Tab -->
+        <div id="recommendations" class="tab-content">
+            <h2>Personalized Wellness Recommendations</h2>
+            <div id="recommendationsList" class="recommendations">
+                <!-- Recommendations will be generated here -->
+            </div>
+        </div>
+
+        <!-- Games Tab -->
+        <div id="games" class="tab-content">
+            <h2>🎮 Wellness Games</h2>
+            
+            <!-- Breathing Exercise Game -->
+            <div class="game-container">
+                <h3>🫁 Guided Breathing Exercise</h3>
+                <p>Follow the circle to practice deep breathing and reduce stress.</p>
+                <div class="breathing-circle" id="breathingCircle">
+                    <span id="breathingText">Click Start</span>
+                </div>
+                <div class="game-controls">
+                    <button class="game-btn" onclick="startBreathing()">Start Breathing</button>
+                    <button class="game-btn" onclick="stopBreathing()">Stop</button>
+                </div>
+                <div class="game-score" id="breathingScore" style="display: none;">
+                    <strong>Breathing Session Complete!</strong><br>
+                    <span id="breathingTime">0</span> seconds of mindful breathing
+                </div>
+            </div>
+
+            <!-- Memory Match Game -->
+            <div class="game-container">
+                <h3>🧠 Gratitude Memory Match</h3>
+                <p>Match pairs of positive words to boost your mood and memory.</p>
+                <div class="game-score">
+                    <strong>Matches:</strong> <span id="matchScore">0</span>/8 | 
+                    <strong>Moves:</strong> <span id="moveCount">0</span>
+                </div>
+                <div class="memory-grid" id="memoryGrid">
+                    <!-- Memory cards will be generated here -->
+                </div>
+                <div class="game-controls">
+                    <button class="game-btn" onclick="initMemoryGame()">New Game</button>
+                </div>
+            </div>
+
+            <!-- Color Therapy Game -->
+            <div class="game-container">
+                <h3>🎨 Mood Color Therapy</h3>
+                <p>Express your feelings through colors and create calming art.</p>
+                <div class="color-palette" id="colorPalette">
+                    <!-- Color buttons will be generated here -->
+                </div>
+                <canvas id="colorCanvas" class="color-canvas" width="600" height="300"></canvas>
+                <div class="game-controls">
+                    <button class="game-btn" onclick="clearCanvas()">Clear Canvas</button>
+                    <button class="game-btn" onclick="saveArtwork()">Save Artwork</button>
+                </div>
+            </div>
+
+            <!-- Positive Affirmations Game -->
+            <div class="game-container">
+                <h3>💫 Daily Affirmations</h3>
+                <p>Discover positive affirmations to boost your self-esteem and confidence.</p>
+                <div class="affirmation-card" id="affirmationCard">
+                    <div class="affirmation-text" id="affirmationText">
+                        Click "New Affirmation" to begin your positive journey!
+                    </div>
+                </div>
+                <div class="game-controls">
+                    <button class="game-btn" onclick="getNewAffirmation()">New Affirmation</button>
+                    <button class="game-btn" onclick="saveAffirmation()">Save Favorite</button>
+                </div>
+                <div id="savedAffirmations" style="margin-top: 20px;">
+                    <!-- Saved affirmations will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Timetable Tab -->
+        <div id="timetable" class="tab-content">
+            <h2>📅 Monthly Wellness Timetable</h2>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="calendar-nav" onclick="changeMonth(-1)">← Previous</button>
+                    <h3 id="currentMonth">Loading...</h3>
+                    <button class="calendar-nav" onclick="changeMonth(1)">Next →</button>
+                </div>
+                
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <div class="monthly-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="monthlyMoodAvg">0</div>
+                    <div>Average Mood</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="monthlyCheckins">0</div>
+                    <div>Check-ins This Month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="monthlyActivities">0</div>
+                    <div>Planned Activities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="monthlyStreak">0</div>
+                    <div>Current Streak</div>
+                </div>
+            </div>
+
+            <div class="activity-form" id="activityForm" style="display: none;">
+                <h4>Plan Activity for <span id="selectedDate"></span></h4>
+                <input type="text" id="activityTitle" class="activity-input" placeholder="Activity title...">
+                <input type="time" id="activityTime" class="activity-input">
+                
+                <div class="activity-type">
+                    <div class="activity-btn" data-type="meditation" onclick="selectActivityType('meditation')">
+                        🧘‍♀️ Meditation
+                    </div>
+                    <div class="activity-btn" data-type="exercise" onclick="selectActivityType('exercise')">
+                        🏃‍♀️ Exercise
+                    </div>
+                    <div class="activity-btn" data-type="therapy" onclick="selectActivityType('therapy')">
+                        💬 Therapy
+                    </div>
+                    <div class="activity-btn" data-type="social" onclick="selectActivityType('social')">
+                        👥 Social
+                    </div>
+                    <div class="activity-btn" data-type="creative" onclick="selectActivityType('creative')">
+                        🎨 Creative
+                    </div>
+                    <div class="activity-btn" data-type="selfcare" onclick="selectActivityType('selfcare')">
+                        🛁 Self-Care
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <button class="game-btn" onclick="saveActivity()">Save Activity</button>
+                    <button class="game-btn" onclick="cancelActivity()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Mood Coach Tab -->
+        <div id="chat" class="tab-content">
+            <h2 style="background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 30px; position: relative;">
+                🤖 AI Mood Coach ✨
+            </h2>
+            
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-avatar">🤖</div>
+                    <div class="chat-title">
+                        <h3>MindWell AI Coach</h3>
+                        <p class="chat-subtitle">Here to brighten your day and boost your mood! 💫</p>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot">
+                        <div class="message-bubble">
+                            Hello! I'm your personal AI Mood Coach! 😊 I'm here to listen, support, and help brighten your day with positive encouragement. How are you feeling right now?
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="typing-bubble">
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-responses">
+                    <button class="quick-response-btn" onclick="sendQuickMessage('I\'m feeling stressed')">😰 I'm feeling stressed</button>
+                    <button class="quick-response-btn" onclick="sendQuickMessage('I need motivation')">💪 I need motivation</button>
+                    <button class="quick-response-btn" onclick="sendQuickMessage('I\'m feeling sad')">😢 I'm feeling sad</button>
+                    <button class="quick-response-btn" onclick="sendQuickMessage('I need encouragement')">🌟 I need encouragement</button>
+                    <button class="quick-response-btn" onclick="sendQuickMessage('Tell me something positive')">✨ Tell me something positive</button>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Share what's on your mind..." onkeypress="handleChatKeyPress(event)">
+                    <button class="chat-send-btn" onclick="sendChatMessage()">💬</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Diary Tab -->
+        <div id="diary" class="tab-content">
+            <h2 style="background: linear-gradient(135deg, #667eea, #764ba2, #f093fb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 30px; position: relative;">
+                ✨ Daily Diary ✨
+            </h2>
+            
+            <div class="diary-container">
+                <div class="diary-header">
+                    <div class="diary-date" id="diaryDate">Today's Entry</div>
+                    <div>
+                        <button class="calendar-nav" onclick="saveDiaryEntry()">💾 Save Entry</button>
+                        <button class="calendar-nav" onclick="clearDiaryEditor()">🗑️ Clear</button>
+                    </div>
+                </div>
+                
+                <div style="position: relative;">
+                    <textarea id="diaryEditor" class="diary-editor" placeholder="What happened today? How are you feeling? What are you grateful for?\n\nStart writing your thoughts here..."></textarea>
+                    <div class="word-count" id="wordCount">0 words</div>
+                </div>
+                
+                <div class="diary-prompts">
+                    <div class="prompt-card" onclick="addPromptToEditor('gratitude')">
+                        <div class="prompt-title">🙏 Gratitude</div>
+                        <div class="prompt-text">What am I grateful for today?</div>
+                    </div>
+                    <div class="prompt-card" onclick="addPromptToEditor('accomplishments')">
+                        <div class="prompt-title">🎯 Accomplishments</div>
+                        <div class="prompt-text">What did I achieve today?</div>
+                    </div>
+                    <div class="prompt-card" onclick="addPromptToEditor('challenges')">
+                        <div class="prompt-title">💪 Challenges</div>
+                        <div class="prompt-text">What challenges did I face and how did I handle them?</div>
+                    </div>
+                    <div class="prompt-card" onclick="addPromptToEditor('emotions')">
+                        <div class="prompt-title">💭 Emotions</div>
+                        <div class="prompt-text">How am I feeling and why?</div>
+                    </div>
+                    <div class="prompt-card" onclick="addPromptToEditor('tomorrow')">
+                        <div class="prompt-title">🌅 Tomorrow</div>
+                        <div class="prompt-text">What do I want to focus on tomorrow?</div>
+                    </div>
+                    <div class="prompt-card" onclick="addPromptToEditor('lessons')">
+                        <div class="prompt-title">📚 Lessons</div>
+                        <div class="prompt-text">What did I learn today?</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="diary-stats">
+                <div class="diary-stat">
+                    <div class="diary-stat-number" id="totalEntries">0</div>
+                    <div>Total Entries</div>
+                </div>
+                <div class="diary-stat">
+                    <div class="diary-stat-number" id="currentStreak">0</div>
+                    <div>Day Streak</div>
+                </div>
+                <div class="diary-stat">
+                    <div class="diary-stat-number" id="totalWords">0</div>
+                    <div>Total Words</div>
+                </div>
+                <div class="diary-stat">
+                    <div class="diary-stat-number" id="thisMonth">0</div>
+                    <div>This Month</div>
+                </div>
+            </div>
+
+            <div class="diary-entries">
+                <input type="text" id="diarySearch" class="diary-search" placeholder="🔍 Search your diary entries..." onkeyup="searchDiaryEntries()">
+                <div id="diaryEntriesList">
+                    <!-- Diary entries will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+            <h2>Your Check-in History</h2>
+            <div id="historyList" class="mood-history">
+                <!-- History entries will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let selectedMood = null;
+        let moodChart = null;
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMoodHistory();
+            updateRecommendations();
+            updateTrends();
+        });
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Update content based on tab
+            if (tabName === 'trends') {
+                updateTrends();
+            } else if (tabName === 'recommendations') {
+                updateRecommendations();
+            } else if (tabName === 'history') {
+                loadMoodHistory();
+            }
+        }
+
+        // Mood selection
+        function selectMood(mood) {
+            selectedMood = mood;
+            
+            // Remove selected class from all mood buttons
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked button
+            document.querySelector(`[data-mood="${mood}"]`).classList.add('selected');
+            
+            // Analyze sentiment of the note
+            const note = document.getElementById('moodNote').value;
+            if (note.trim()) {
+                analyzeSentiment(note);
+            }
+        }
+
+        // Simple sentiment analysis
+        function analyzeSentiment(text) {
+            const positiveWords = ['happy', 'good', 'great', 'excellent', 'wonderful', 'amazing', 'fantastic', 'love', 'joy', 'excited', 'grateful', 'blessed', 'peaceful', 'calm', 'relaxed'];
+            const negativeWords = ['sad', 'bad', 'terrible', 'awful', 'hate', 'angry', 'frustrated', 'worried', 'anxious', 'depressed', 'stressed', 'overwhelmed', 'lonely', 'tired'];
+            
+            const words = text.toLowerCase().split(/\s+/);
+            let positiveCount = 0;
+            let negativeCount = 0;
+            
+            words.forEach(word => {
+                if (positiveWords.includes(word)) positiveCount++;
+                if (negativeWords.includes(word)) negativeCount++;
+            });
+            
+            let sentiment = 'Neutral';
+            let sentimentColor = '#2196f3';
+            
+            if (positiveCount > negativeCount) {
+                sentiment = 'Positive';
+                sentimentColor = '#4caf50';
+            } else if (negativeCount > positiveCount) {
+                sentiment = 'Negative';
+                sentimentColor = '#f44336';
+            }
+            
+            const sentimentDiv = document.getElementById('sentimentAnalysis');
+            const sentimentText = document.getElementById('sentimentText');
+            
+            sentimentText.innerHTML = `<strong style="color: ${sentimentColor}">Sentiment: ${sentiment}</strong><br>
+                                     Your note reflects ${sentiment.toLowerCase()} emotions. ${getSentimentAdvice(sentiment)}`;
+            sentimentDiv.style.display = 'block';
+        }
+
+        function getSentimentAdvice(sentiment) {
+            switch(sentiment) {
+                case 'Positive':
+                    return 'Keep nurturing these positive feelings!';
+                case 'Negative':
+                    return 'Consider some self-care activities or talking to someone you trust.';
+                default:
+                    return 'Take a moment to reflect on your feelings.';
+            }
+        }
+
+        // Save mood entry
+        function saveMoodEntry() {
+            if (!selectedMood) {
+                alert('Please select your mood first!');
+                return;
+            }
+            
+            const note = document.getElementById('moodNote').value;
+            const today = new Date().toISOString().split('T')[0];
+            
+            const entry = {
+                date: today,
+                mood: selectedMood,
+                note: note,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Get existing entries
+            let entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
+            
+            // Remove any existing entry for today
+            entries = entries.filter(e => e.date !== today);
+            
+            // Add new entry
+            entries.push(entry);
+            
+            // Save to localStorage
+            localStorage.setItem('moodEntries', JSON.stringify(entries));
+            
+            // Reset form
+            selectedMood = null;
+            document.getElementById('moodNote').value = '';
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById('sentimentAnalysis').style.display = 'none';
+            
+            alert('Your mood has been saved! 🎉');
+            
+            // Update other tabs
+            updateRecommendations();
+            updateTrends();
+        }
+
+        // Load and display mood history
+        function loadMoodHistory() {
+            const entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
+            const historyList = document.getElementById('historyList');
+            
+            if (entries.length === 0) {
+                historyList.innerHTML = '<p>No mood entries yet. Start by checking in today!</p>';
+                return;
+            }
+            
+            // Sort entries by date (newest first)
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const moodEmojis = {1: '😢', 2: '😔', 3: '😐', 4: '😊', 5: '😄'};
+            const moodLabels = {1: 'Very Low', 2: 'Low', 3: 'Okay', 4: 'Good', 5: 'Excellent'};
+            
+            historyList.innerHTML = entries.map(entry => `
+                <div class="mood-entry">
+                    <div>
+                        <strong>${new Date(entry.date).toLocaleDateString()}</strong>
+                        <span>${moodEmojis[entry.mood]} ${moodLabels[entry.mood]}</span>
+                    </div>
+                    <div>
+                        ${entry.note ? `<em>"${entry.note}"</em>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update trends and visualization
+        function updateTrends() {
+            const entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
+            
+            if (entries.length === 0) {
+                document.getElementById('trendInsights').innerHTML = '<p>Start tracking your mood to see trends!</p>';
+                return;
+            }
+            
+            // Sort entries by date
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Prepare chart data
+            const labels = entries.map(entry => new Date(entry.date).toLocaleDateString());
+            const data = entries.map(entry => entry.mood);
+            
+            // Destroy existing chart if it exists
+            if (moodChart) {
+                moodChart.destroy();
+            }
+            
+            // Create new chart
+            const ctx = document.getElementById('moodChart').getContext('2d');
+            moodChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Mood Level',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    const labels = {1: 'Very Low', 2: 'Low', 3: 'Okay', 4: 'Good', 5: 'Excellent'};
+                                    return labels[value] || '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Generate insights
+            generateInsights(entries);
+        }
+
+        // Generate mood insights
+        function generateInsights(entries) {
+            const recent = entries.slice(-7); // Last 7 entries
+            const average = recent.reduce((sum, entry) => sum + entry.mood, 0) / recent.length;
+            
+            let trend = 'stable';
+            if (recent.length > 1) {
+                const firstHalf = recent.slice(0, Math.floor(recent.length / 2));
+                const secondHalf = recent.slice(Math.floor(recent.length / 2));
+                
+                const firstAvg = firstHalf.reduce((sum, entry) => sum + entry.mood, 0) / firstHalf.length;
+                const secondAvg = secondHalf.reduce((sum, entry) => sum + entry.mood, 0) / secondHalf.length;
+                
+                if (secondAvg > firstAvg + 0.3) trend = 'improving';
+                else if (secondAvg < firstAvg - 0.3) trend = 'declining';
+            }
+            
+            const insightsDiv = document.getElementById('trendInsights');
+            insightsDiv.innerHTML = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h3>📊 Your Mood Insights</h3>
+                    <p><strong>Recent Average:</strong> ${average.toFixed(1)}/5</p>
+                    <p><strong>Trend:</strong> Your mood appears to be ${trend}</p>
+                    <p><strong>Total Check-ins:</strong> ${entries.length}</p>
+                    ${getTrendAdvice(trend, average)}
+                </div>
+            `;
+        }
+
+        function getTrendAdvice(trend, average) {
+            if (trend === 'improving') {
+                return '<p style="color: #4caf50;"><strong>Great job!</strong> Your mood is trending upward. Keep doing what you\'re doing!</p>';
+            } else if (trend === 'declining') {
+                return '<p style="color: #f44336;"><strong>Take care:</strong> Consider reaching out to someone or trying some wellness activities.</p>';
+            } else if (average < 2.5) {
+                return '<p style="color: #ff9800;"><strong>Support available:</strong> Your recent mood has been low. Consider professional support if needed.</p>';
+            } else {
+                return '<p style="color: #2196f3;"><strong>Keep it up:</strong> You\'re maintaining a steady mood. Regular check-ins help!</p>';
+            }
+        }
+
+        // Update personalized recommendations
+        function updateRecommendations() {
+            const entries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
+            const recommendationsList = document.getElementById('recommendationsList');
+            
+            let recommendations = getBaseRecommendations();
+            
+            if (entries.length > 0) {
+                const recent = entries.slice(-3);
+                const averageMood = recent.reduce((sum, entry) => sum + entry.mood, 0) / recent.length;
+                
+                recommendations = getPersonalizedRecommendations(averageMood, recent);
+            }
+            
+            recommendationsList.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-card">
+                    <h3>${rec.title}</h3>
+                    <p>${rec.description}</p>
+                    <small>${rec.tip}</small>
+                </div>
+            `).join('');
+        }
+
+        function getBaseRecommendations() {
+            return [
+                {
+                    title: '🧘‍♀️ Mindfulness Meditation',
+                    description: 'Take 10 minutes to practice mindfulness meditation.',
+                    tip: 'Start with just 5 minutes if you\'re new to meditation.'
+                },
+                {
+                    title: '🚶‍♂️ Daily Walk',
+                    description: 'Go for a 20-30 minute walk in nature or around your neighborhood.',
+                    tip: 'Fresh air and movement can significantly boost your mood.'
+                },
+                {
+                    title: '📝 Gratitude Journal',
+                    description: 'Write down 3 things you\'re grateful for today.',
+                    tip: 'Focusing on positives can shift your perspective.'
+                }
+            ];
+        }
+
+        function getPersonalizedRecommendations(averageMood, recentEntries) {
+            let recommendations = [];
+            
+            if (averageMood < 2.5) {
+                recommendations = [
+                    {
+                        title: '🤗 Reach Out',
+                        description: 'Connect with a friend, family member, or mental health professional.',
+                        tip: 'You don\'t have to go through difficult times alone.'
+                    },
+                    {
+                        title: '🛁 Self-Care Routine',
+                        description: 'Take a warm bath, listen to calming music, or do something nurturing.',
+                        tip: 'Small acts of self-care can make a big difference.'
+                    },
+                    {
+                        title: '😴 Prioritize Sleep',
+                        description: 'Aim for 7-9 hours of quality sleep tonight.',
+                        tip: 'Good sleep is fundamental to mental health.'
+                    }
+                ];
+            } else if (averageMood > 3.5) {
+                recommendations = [
+                    {
+                        title: '🎯 Set New Goals',
+                        description: 'Channel your positive energy into setting and working toward new goals.',
+                        tip: 'Momentum builds on momentum!'
+                    },
+                    {
+                        title: '💝 Help Others',
+                        description: 'Consider volunteering or helping someone in need.',
+                        tip: 'Helping others can enhance your own well-being.'
+                    },
+                    {
+                        title: '🎨 Creative Expression',
+                        description: 'Try a creative activity like drawing, writing, or music.',
+                        tip: 'Creativity can help maintain and boost positive emotions.'
+                    }
+                ];
+            } else {
+                recommendations = [
+                    {
+                        title: '⚖️ Balance Check',
+                        description: 'Review your work-life balance and make adjustments if needed.',
+                        tip: 'Maintaining balance helps sustain good mental health.'
+                    },
+                    {
+                        title: '🏃‍♀️ Physical Activity',
+                        description: 'Engage in your favorite form of exercise or try something new.',
+                        tip: 'Regular exercise is a natural mood booster.'
+                    },
+                    {
+                        title: '📚 Learn Something New',
+                        description: 'Pick up a new skill or hobby that interests you.',
+                        tip: 'Learning keeps your mind engaged and can bring joy.'
+                    }
+                ];
+            }
+            
+            return recommendations;
+        }
+
+        // Add event listener for real-time sentiment analysis
+        document.getElementById('moodNote').addEventListener('input', function() {
+            if (selectedMood && this.value.trim()) {
+                analyzeSentiment(this.value);
+            }
+        });
+
+        // ===== WELLNESS GAMES FUNCTIONALITY =====
+
+        // Breathing Exercise Game
+        let breathingInterval = null;
+        let breathingStartTime = null;
+        let breathingPhase = 'inhale';
+
+        function startBreathing() {
+            if (breathingInterval) return; // Already running
+            
+            const circle = document.getElementById('breathingCircle');
+            const text = document.getElementById('breathingText');
+            breathingStartTime = Date.now();
+            
+            // Start with inhale
+            breathingPhase = 'inhale';
+            circle.classList.add('inhale');
+            text.textContent = 'Breathe In...';
+            
+            breathingInterval = setInterval(() => {
+                if (breathingPhase === 'inhale') {
+                    // Switch to exhale after 4 seconds
+                    setTimeout(() => {
+                        if (breathingInterval) {
+                            circle.classList.remove('inhale');
+                            circle.classList.add('exhale');
+                            text.textContent = 'Breathe Out...';
+                            breathingPhase = 'exhale';
+                        }
+                    }, 4000);
+                } else {
+                    // Switch to inhale after 4 seconds
+                    setTimeout(() => {
+                        if (breathingInterval) {
+                            circle.classList.remove('exhale');
+                            circle.classList.add('inhale');
+                            text.textContent = 'Breathe In...';
+                            breathingPhase = 'inhale';
+                        }
+                    }, 4000);
+                }
+            }, 8000); // Full cycle every 8 seconds
+        }
+
+        function stopBreathing() {
+            if (breathingInterval) {
+                clearInterval(breathingInterval);
+                breathingInterval = null;
+                
+                const circle = document.getElementById('breathingCircle');
+                const text = document.getElementById('breathingText');
+                const scoreDiv = document.getElementById('breathingScore');
+                const timeSpan = document.getElementById('breathingTime');
+                
+                circle.classList.remove('inhale', 'exhale');
+                text.textContent = 'Session Complete!';
+                
+                if (breathingStartTime) {
+                    const duration = Math.floor((Date.now() - breathingStartTime) / 1000);
+                    timeSpan.textContent = duration;
+                    scoreDiv.style.display = 'block';
+                    
+                    // Reset after 3 seconds
+                    setTimeout(() => {
+                        text.textContent = 'Click Start';
+                        scoreDiv.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+
+        // Memory Match Game
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moveCount = 0;
+
+        const gratitudeWords = [
+            '💝', '🌟', '🌈', '🦋', '🌸', '☀️', '🎈', '🍀',
+            '💝', '🌟', '🌈', '🦋', '🌸', '☀️', '🎈', '🍀'
+        ];
+
+        function initMemoryGame() {
+            const grid = document.getElementById('memoryGrid');
+            matchedPairs = 0;
+            moveCount = 0;
+            flippedCards = [];
+            
+            // Shuffle cards
+            const shuffled = [...gratitudeWords].sort(() => Math.random() - 0.5);
+            
+            grid.innerHTML = '';
+            memoryCards = [];
+            
+            shuffled.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.symbol = symbol;
+                card.dataset.index = index;
+                card.addEventListener('click', flipCard);
+                grid.appendChild(card);
+                memoryCards.push(card);
+            });
+            
+            updateMemoryScore();
+        }
+
+        function flipCard(event) {
+            const card = event.target;
+            
+            if (card.classList.contains('flipped') || card.classList.contains('matched') || flippedCards.length >= 2) {
+                return;
+            }
+            
+            card.classList.add('flipped');
+            card.textContent = card.dataset.symbol;
+            flippedCards.push(card);
+            
+            if (flippedCards.length === 2) {
+                moveCount++;
+                updateMemoryScore();
+                
+                setTimeout(() => {
+                    checkMatch();
+                }, 1000);
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.symbol === card2.dataset.symbol) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                
+                if (matchedPairs === 8) {
+                    setTimeout(() => {
+                        alert(`Congratulations! You completed the game in ${moveCount} moves! 🎉`);
+                    }, 500);
+                }
+            } else {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1.textContent = '';
+                card2.textContent = '';
+            }
+            
+            flippedCards = [];
+            updateMemoryScore();
+        }
+
+        function updateMemoryScore() {
+            document.getElementById('matchScore').textContent = matchedPairs;
+            document.getElementById('moveCount').textContent = moveCount;
+        }
+
+        // Color Therapy Game
+        let currentColor = '#667eea';
+        let isDrawing = false;
+        let canvas, ctx;
+
+        function initColorTherapy() {
+            canvas = document.getElementById('colorCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set up color palette
+            const palette = document.getElementById('colorPalette');
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd'];
+            
+            palette.innerHTML = '';
+            colors.forEach(color => {
+                const colorBtn = document.createElement('div');
+                colorBtn.className = 'color-btn';
+                colorBtn.style.backgroundColor = color;
+                colorBtn.addEventListener('click', () => {
+                    currentColor = color;
+                    // Visual feedback
+                    document.querySelectorAll('.color-btn').forEach(btn => btn.style.border = '3px solid white');
+                    colorBtn.style.border = '3px solid #333';
+                });
+                palette.appendChild(colorBtn);
+            });
+            
+            // Canvas event listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = currentColor;
+            
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function stopDrawing() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.beginPath();
+            }
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                            e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function saveArtwork() {
+            const dataURL = canvas.toDataURL();
+            const link = document.createElement('a');
+            link.download = `mindwell-artwork-${Date.now()}.png`;
+            link.href = dataURL;
+            link.click();
+            
+            alert('Your artwork has been saved! 🎨');
+        }
+
+        // Positive Affirmations Game
+        const affirmations = [
+            "I am worthy of love and respect.",
+            "I choose to focus on what I can control.",
+            "I am growing stronger every day.",
+            "I deserve happiness and peace.",
+            "I am capable of overcoming challenges.",
+            "I trust in my ability to make good decisions.",
+            "I am grateful for this moment.",
+            "I choose to see the good in every situation.",
+            "I am enough, just as I am.",
+            "I have the power to create positive change.",
+            "I am resilient and can handle whatever comes my way.",
+            "I choose to be kind to myself today.",
+            "I am surrounded by love and support.",
+            "I trust the process of life.",
+            "I am creating a life I love.",
+            "I choose peace over worry.",
+            "I am confident in my abilities.",
+            "I deserve to take up space in this world.",
+            "I am learning and growing from every experience.",
+            "I choose to celebrate my progress."
+        ];
+
+        let currentAffirmation = '';
+        let savedAffirmationsList = JSON.parse(localStorage.getItem('savedAffirmations') || '[]');
+
+        function getNewAffirmation() {
+            const randomIndex = Math.floor(Math.random() * affirmations.length);
+            currentAffirmation = affirmations[randomIndex];
+            document.getElementById('affirmationText').textContent = currentAffirmation;
+        }
+
+        function saveAffirmation() {
+            if (!currentAffirmation) {
+                alert('Please generate an affirmation first!');
+                return;
+            }
+            
+            if (!savedAffirmationsList.includes(currentAffirmation)) {
+                savedAffirmationsList.push(currentAffirmation);
+                localStorage.setItem('savedAffirmations', JSON.stringify(savedAffirmationsList));
+                displaySavedAffirmations();
+                alert('Affirmation saved to your favorites! ⭐');
+            } else {
+                alert('This affirmation is already in your favorites!');
+            }
+        }
+
+        function displaySavedAffirmations() {
+            const container = document.getElementById('savedAffirmations');
+            if (savedAffirmationsList.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = `
+                <h4>Your Favorite Affirmations:</h4>
+                ${savedAffirmationsList.map((affirmation, index) => `
+                    <div style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 8px; border-left: 4px solid #667eea;">
+                        <em>"${affirmation}"</em>
+                        <button onclick="removeSavedAffirmation(${index})" style="float: right; background: none; border: none; color: #dc3545; cursor: pointer;">✕</button>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function removeSavedAffirmation(index) {
+            savedAffirmationsList.splice(index, 1);
+            localStorage.setItem('savedAffirmations', JSON.stringify(savedAffirmationsList));
+            displaySavedAffirmations();
+        }
+
+        // Initialize games when the games tab is first accessed
+        function initializeGames() {
+            initMemoryGame();
+            initColorTherapy();
+            displaySavedAffirmations();
+        }
+
+        // ===== MONTHLY TIMETABLE FUNCTIONALITY =====
+
+        let currentCalendarDate = new Date();
+        let selectedActivityType = '';
+        let selectedCalendarDate = null;
+        let monthlyActivities = JSON.parse(localStorage.getItem('monthlyActivities') || '{}');
+
+        function generateCalendar(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+            
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Add empty cells for days before month starts
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day other-month';
+                grid.appendChild(emptyDay);
+            }
+            
+            // Add days of the month
+            const moodEntries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
+            const today = new Date();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                const currentDate = new Date(year, month, day);
+                const dateString = currentDate.toISOString().split('T')[0];
+                
+                // Check if it's today
+                if (currentDate.toDateString() === today.toDateString()) {
+                    dayElement.classList.add('today');
+                }
+                
+                // Check for mood entry
+                const moodEntry = moodEntries.find(entry => entry.date === dateString);
+                if (moodEntry) {
+                    dayElement.classList.add('has-mood');
+                }
+                
+                // Day number
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+                
+                // Mood emoji
+                if (moodEntry) {
+                    const moodEmojis = {1: '😢', 2: '😔', 3: '😐', 4: '😊', 5: '😄'};
+                    const dayMood = document.createElement('div');
+                    dayMood.className = 'day-mood';
+                    dayMood.textContent = moodEmojis[moodEntry.mood];
+                    dayElement.appendChild(dayMood);
+                }
+                
+                // Activities
+                const dayActivities = monthlyActivities[dateString] || [];
+                if (dayActivities.length > 0) {
+                    const activitiesDiv = document.createElement('div');
+                    activitiesDiv.className = 'day-activities';
+                    dayActivities.slice(0, 2).forEach(activity => {
+                        const activityItem = document.createElement('div');
+                        activityItem.className = 'activity-item';
+                        activityItem.textContent = activity.title.substring(0, 10) + (activity.title.length > 10 ? '...' : '');
+                        activitiesDiv.appendChild(activityItem);
+                    });
+                    if (dayActivities.length > 2) {
+                        const moreItem = document.createElement('div');
+                        moreItem.className = 'activity-item';
+                        moreItem.textContent = `+${dayActivities.length - 2} more`;
+                        activitiesDiv.appendChild(moreItem);
+                    }
+                    dayElement.appendChild(activitiesDiv);
+                }
+                
+                // Click handler
+                dayElement.addEventListener('click', () => openActivityForm(dateString, day, month + 1, year));
+                
+                grid.appendChild(dayElement);
+            }
+            
+            updateMonthlyStats(year, month);
+        }
+
+        function changeMonth(direction) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
+            generateCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
+        }
+
+        function openActivityForm(dateString, day, month, year) {
+            selectedCalendarDate = dateString;
+            const form = document.getElementById('activityForm');
+            const selectedDateSpan = document.getElementById('selectedDate');
+            
+            selectedDateSpan.textContent = `${day}/${month}/${year}`;
+            form.style.display = 'block';
+            
+            // Clear form
+            document.getElementById('activityTitle').value = '';
+            document.getElementById('activityTime').value = '';
+            selectedActivityType = '';
+            document.querySelectorAll('.activity-btn').forEach(btn => btn.classList.remove('selected'));
+        }
+
+        function selectActivityType(type) {
+            selectedActivityType = type;
+            document.querySelectorAll('.activity-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+        }
+
+        function saveActivity() {
+            const title = document.getElementById('activityTitle').value.trim();
+            const time = document.getElementById('activityTime').value;
+            
+            if (!title || !selectedActivityType) {
+                alert('Please fill in the activity title and select a type!');
+                return;
+            }
+            
+            const activity = {
+                title: title,
+                time: time,
+                type: selectedActivityType,
+                id: Date.now()
+            };
+            
+            if (!monthlyActivities[selectedCalendarDate]) {
+                monthlyActivities[selectedCalendarDate] = [];
+            }
+            
+            monthlyActivities[selectedCalendarDate].push(activity);
+            localStorage.setItem('monthlyActivities', JSON.stringify(monthlyActivities));
+            
+            cancelActivity();
+            generateCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
+            
+            alert('Activity scheduled successfully! 📅');
+        }
+
+        function cancelActivity() {
+            document.getElementById('activityForm').style.display = 'none';
+            selectedCalendarDate = null;
+            selectedActivityType = '';
+        }
+
+        function updateMonthlyStats(year, month) {
+            const monthStart = new Date(year, month, 1);
+            const monthEnd = new Date(year, month + 1, 0);
+            
+            // Get mood entries for this month
+            const moodEntries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
+            const monthlyMoods = moodEntries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate >= monthStart && entryDate <= monthEnd;
+            });
+            
+            // Calculate average mood
+            const avgMood = monthlyMoods.length > 0 
+                ? (monthlyMoods.reduce((sum, entry) => sum + entry.mood, 0) / monthlyMoods.length).toFixed(1)
+                : '0';
+            
+            // Count activities for this month
+            let monthlyActivityCount = 0;
+            Object.keys(monthlyActivities).forEach(dateKey => {
+                const activityDate = new Date(dateKey);
+                if (activityDate >= monthStart && activityDate <= monthEnd) {
+                    monthlyActivityCount += monthlyActivities[dateKey].length;
+                }
+            });
+            
+            // Calculate streak (consecutive days with check-ins)
+            const sortedEntries = moodEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            let streak = 0;
+            let currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            
+            for (let entry of sortedEntries) {
+                const entryDate = new Date(entry.date);
+                entryDate.setHours(0, 0, 0, 0);
+                
+                if (entryDate.getTime() === currentDate.getTime()) {
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1);
+                } else if (entryDate.getTime() === currentDate.getTime() + 86400000) {
+                    // Allow for yesterday if today hasn't been checked in yet
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            
+            // Update stats display with enhanced visuals
+            document.getElementById('monthlyMoodAvg').textContent = avgMood;
+            document.getElementById('monthlyCheckins').textContent = monthlyMoods.length;
+            document.getElementById('monthlyActivities').textContent = monthlyActivityCount;
+            document.getElementById('monthlyStreak').textContent = streak;
+            
+            // Add progress bars and achievements
+            addProgressBars(avgMood, monthlyMoods.length, monthlyActivityCount, streak);
+            addAchievementBadges(monthlyMoods.length, monthlyActivityCount, streak);
+        }
+
+        function addProgressBars(avgMood, checkins, activities, streak) {
+            // Add progress bars to stat cards
+            const statCards = document.querySelectorAll('.stat-card');
+            
+            statCards.forEach((card, index) => {
+                // Remove existing progress bar
+                const existingBar = card.querySelector('.progress-bar');
+                if (existingBar) existingBar.remove();
+                
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                
+                const progressFill = document.createElement('div');
+                progressFill.className = 'progress-fill';
+                
+                let percentage = 0;
+                switch(index) {
+                    case 0: // Average Mood
+                        percentage = (avgMood / 5) * 100;
+                        break;
+                    case 1: // Check-ins (target: 30 days)
+                        percentage = Math.min((checkins / 30) * 100, 100);
+                        break;
+                    case 2: // Activities (target: 20 activities)
+                        percentage = Math.min((activities / 20) * 100, 100);
+                        break;
+                    case 3: // Streak (target: 14 days)
+                        percentage = Math.min((streak / 14) * 100, 100);
+                        break;
+                }
+                
+                progressFill.style.width = percentage + '%';
+                progressBar.appendChild(progressFill);
+                card.appendChild(progressBar);
+            });
+        }
+
+        function addAchievementBadges(checkins, activities, streak) {
+            // Remove existing badges
+            document.querySelectorAll('.achievement-badge').forEach(badge => badge.remove());
+            
+            const statCards = document.querySelectorAll('.stat-card');
+            
+            // Check-ins achievement (15+ check-ins)
+            if (checkins >= 15) {
+                const badge = document.createElement('div');
+                badge.className = 'achievement-badge';
+                badge.textContent = '🏆';
+                badge.title = 'Consistency Champion!';
+                statCards[1].style.position = 'relative';
+                statCards[1].appendChild(badge);
+            }
+            
+            // Activities achievement (10+ activities)
+            if (activities >= 10) {
+                const badge = document.createElement('div');
+                badge.className = 'achievement-badge';
+                badge.textContent = '⭐';
+                badge.title = 'Activity Star!';
+                statCards[2].style.position = 'relative';
+                statCards[2].appendChild(badge);
+            }
+            
+            // Streak achievement (7+ days)
+            if (streak >= 7) {
+                const badge = document.createElement('div');
+                badge.className = 'achievement-badge';
+                badge.textContent = '🔥';
+                badge.title = 'On Fire!';
+                statCards[3].style.position = 'relative';
+                statCards[3].appendChild(badge);
+            }
+        }
+
+        function initializeTimetable() {
+            generateCalendar(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth());
+        }
+
+        // ===== DAILY DIARY FUNCTIONALITY =====
+
+        let diaryEntries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
+        let currentDiaryEntry = '';
+
+        function initializeDiary() {
+            updateDiaryDate();
+            loadTodaysDiaryEntry();
+            updateDiaryStats();
+            displayDiaryEntries();
+            setupWordCounter();
+        }
+
+        function updateDiaryDate() {
+            const today = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('diaryDate').textContent = today.toLocaleDateString('en-US', options);
+        }
+
+        function loadTodaysDiaryEntry() {
+            const today = new Date().toISOString().split('T')[0];
+            const todaysEntry = diaryEntries.find(entry => entry.date === today);
+            
+            if (todaysEntry) {
+                document.getElementById('diaryEditor').value = todaysEntry.content;
+                currentDiaryEntry = todaysEntry.content;
+            } else {
+                document.getElementById('diaryEditor').value = '';
+                currentDiaryEntry = '';
+            }
+            updateWordCount();
+        }
+
+        function setupWordCounter() {
+            const editor = document.getElementById('diaryEditor');
+            editor.addEventListener('input', updateWordCount);
+        }
+
+        function updateWordCount() {
+            const editor = document.getElementById('diaryEditor');
+            const content = editor.value.trim();
+            const wordCount = content ? content.split(/\s+/).length : 0;
+            document.getElementById('wordCount').textContent = `${wordCount} words`;
+        }
+
+        function addPromptToEditor(promptType) {
+            const editor = document.getElementById('diaryEditor');
+            const prompts = {
+                gratitude: '\n\n🙏 What I\'m grateful for today:\n• ',
+                accomplishments: '\n\n🎯 What I accomplished today:\n• ',
+                challenges: '\n\n💪 Challenges I faced and how I handled them:\n• ',
+                emotions: '\n\n💭 How I\'m feeling and why:\n',
+                tomorrow: '\n\n🌅 What I want to focus on tomorrow:\n• ',
+                lessons: '\n\n📚 What I learned today:\n• '
+            };
+            
+            const currentContent = editor.value;
+            const promptText = prompts[promptType] || '';
+            
+            editor.value = currentContent + promptText;
+            editor.focus();
+            editor.setSelectionRange(editor.value.length, editor.value.length);
+            updateWordCount();
+        }
+
+        function saveDiaryEntry() {
+            const content = document.getElementById('diaryEditor').value.trim();
+            
+            if (!content) {
+                alert('Please write something before saving!');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            const timestamp = new Date().toISOString();
+            
+            // Remove existing entry for today if it exists
+            diaryEntries = diaryEntries.filter(entry => entry.date !== today);
+            
+            // Add new entry
+            const newEntry = {
+                id: Date.now(),
+                date: today,
+                content: content,
+                timestamp: timestamp,
+                wordCount: content.split(/\s+/).length
+            };
+            
+            diaryEntries.unshift(newEntry);
+            localStorage.setItem('diaryEntries', JSON.stringify(diaryEntries));
+            
+            currentDiaryEntry = content;
+            updateDiaryStats();
+            displayDiaryEntries();
+            
+            alert('Diary entry saved! 📔✨');
+        }
+
+        function clearDiaryEditor() {
+            if (confirm('Are you sure you want to clear your current entry?')) {
+                document.getElementById('diaryEditor').value = '';
+                updateWordCount();
+            }
+        }
+
+        function updateDiaryStats() {
+            const totalEntries = diaryEntries.length;
+            const totalWords = diaryEntries.reduce((sum, entry) => sum + entry.wordCount, 0);
+            
+            // Calculate streak
+            let streak = 0;
+            const sortedEntries = diaryEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            let currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            
+            for (let entry of sortedEntries) {
+                const entryDate = new Date(entry.date);
+                entryDate.setHours(0, 0, 0, 0);
+                
+                if (entryDate.getTime() === currentDate.getTime()) {
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1);
+                } else if (entryDate.getTime() === currentDate.getTime() + 86400000) {
+                    streak++;
+                    currentDate.setDate(currentDate.getDate() - 1);
+                } else {
+                    break;
+                }
+            }
+            
+            // This month entries
+            const thisMonth = new Date();
+            const monthStart = new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1);
+            const monthEnd = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 0);
+            
+            const thisMonthEntries = diaryEntries.filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate >= monthStart && entryDate <= monthEnd;
+            }).length;
+            
+            // Update display
+            document.getElementById('totalEntries').textContent = totalEntries;
+            document.getElementById('currentStreak').textContent = streak;
+            document.getElementById('totalWords').textContent = totalWords.toLocaleString();
+            document.getElementById('thisMonth').textContent = thisMonthEntries;
+        }
+
+        function displayDiaryEntries() {
+            const entriesList = document.getElementById('diaryEntriesList');
+            
+            if (diaryEntries.length === 0) {
+                entriesList.innerHTML = '<p style="text-align: center; color: #666; margin: 40px 0;">No diary entries yet. Start writing your first entry above! ✨</p>';
+                return;
+            }
+            
+            const sortedEntries = diaryEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            entriesList.innerHTML = sortedEntries.map(entry => `
+                <div class="diary-entry" data-entry-id="${entry.id}">
+                    <div class="entry-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    })}</div>
+                    <div class="entry-content">${entry.content.substring(0, 300)}${entry.content.length > 300 ? '...' : ''}</div>
+                    <div class="entry-actions">
+                        <button class="entry-btn" onclick="editDiaryEntry('${entry.id}')">✏️ Edit</button>
+                        <button class="entry-btn" onclick="deleteDiaryEntry('${entry.id}')">🗑️ Delete</button>
+                        <span style="margin-left: auto; font-size: 0.8rem; color: #999;">${entry.wordCount} words</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function searchDiaryEntries() {
+            const searchTerm = document.getElementById('diarySearch').value.toLowerCase();
+            const entries = document.querySelectorAll('.diary-entry');
+            
+            entries.forEach(entry => {
+                const content = entry.querySelector('.entry-content').textContent.toLowerCase();
+                const date = entry.querySelector('.entry-date').textContent.toLowerCase();
+                
+                if (content.includes(searchTerm) || date.includes(searchTerm)) {
+                    entry.style.display = 'block';
+                } else {
+                    entry.style.display = 'none';
+                }
+            });
+        }
+
+        function editDiaryEntry(entryId) {
+            const entry = diaryEntries.find(e => e.id == entryId);
+            if (entry) {
+                document.getElementById('diaryEditor').value = entry.content;
+                updateWordCount();
+                
+                // Scroll to editor
+                document.getElementById('diaryEditor').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('diaryEditor').focus();
+                
+                // If it's not today's entry, ask if they want to create a new entry for today
+                const today = new Date().toISOString().split('T')[0];
+                if (entry.date !== today) {
+                    setTimeout(() => {
+                        if (confirm('This entry is from a previous date. Would you like to create a new entry for today based on this content?')) {
+                            // Keep the content in editor for today's entry
+                        } else {
+                            // Load today's entry instead
+                            loadTodaysDiaryEntry();
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function deleteDiaryEntry(entryId) {
+            if (confirm('Are you sure you want to delete this diary entry? This action cannot be undone.')) {
+                diaryEntries = diaryEntries.filter(entry => entry.id != entryId);
+                localStorage.setItem('diaryEntries', JSON.stringify(diaryEntries));
+                
+                updateDiaryStats();
+                displayDiaryEntries();
+                
+                // If we deleted today's entry, clear the editor
+                const today = new Date().toISOString().split('T')[0];
+                const deletedEntry = diaryEntries.find(entry => entry.id == entryId);
+                if (deletedEntry && deletedEntry.date === today) {
+                    loadTodaysDiaryEntry();
+                }
+            }
+        }
+
+        // ===== AI MOOD COACH FUNCTIONALITY =====
+
+        let chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+
+        const positiveResponses = {
+            stressed: [
+                "I understand you're feeling stressed right now. Remember, stress is temporary and you have the strength to get through this. 🌟 Try taking three deep breaths with me - inhale for 4, hold for 4, exhale for 4. You've got this! 💪",
+                "Stress can feel overwhelming, but you're stronger than you know! 🌈 Consider breaking down what's stressing you into smaller, manageable pieces. Sometimes the mountain looks smaller when we focus on one step at a time. ✨",
+                "It's completely normal to feel stressed sometimes. You're human, and that's beautiful! 🌸 Remember that this feeling will pass. What's one small thing you can do right now to be kind to yourself?",
+                "I hear you, and your feelings are valid. 💙 When we're stressed, our minds can spiral, but you have the power to anchor yourself in the present moment. What are three things you can see around you right now?"
+            ],
+            sad: [
+                "I'm sorry you're feeling sad right now. Your emotions matter, and it's okay to feel this way. 🤗 Sadness often means we care deeply about something. You're not alone in this - I'm here with you. 💜",
+                "Sadness is like rain - it feels heavy when it's falling, but it nourishes growth. 🌱 You're allowed to feel sad, and you're also allowed to hope for brighter days ahead. What's one tiny thing that usually brings you a moment of joy?",
+                "Your heart is tender right now, and that shows how deeply you feel. That's actually a beautiful quality! 🌺 While sadness hurts, remember that you've overcome difficult feelings before. You're resilient, even when you don't feel it.",
+                "I see your sadness, and I want you to know it's temporary. 🌅 Like clouds passing over the sun, this feeling will move through you. What would you tell a dear friend who was feeling exactly like you do right now?"
+            ],
+            motivation: [
+                "You're seeking motivation, which means you haven't given up - and that's already amazing! 🚀 Every small step forward is progress. You don't need to climb the whole mountain today, just take the next step. I believe in you! ⭐",
+                "The fact that you're here asking for motivation shows incredible self-awareness! 🌟 You ARE motivated - you're just looking for that extra spark. Remember: you've overcome 100% of your difficult days so far. That's a perfect track record! 💫",
+                "Motivation isn't something you find, it's something you create! ✨ Start with one tiny action - even 1% effort is infinitely better than 0%. What's the smallest possible step you could take right now toward what matters to you?",
+                "You know what motivates me about you? You're still here, still trying, still caring. 🌈 That persistence is your superpower! Some days we sprint, some days we crawl, but as long as we keep moving forward, we're winning. 🏆"
+            ],
+            encouragement: [
+                "You are braver than you believe, stronger than you seem, and more loved than you know! 🌟 Every challenge you've faced has prepared you for this moment. You have everything within you to handle whatever comes your way. ✨",
+                "I want you to know how proud I am of you for reaching out. That takes courage! 💪 You're not just surviving - you're growing, learning, and becoming more resilient with each day. Keep shining your light! 🌅",
+                "Look how far you've already come! 🌈 Every breath you take, every step you make, every moment you choose to keep going - that's heroic. You might not feel like a hero, but you absolutely are one. 🦸‍♀️",
+                "Your journey is unique and valuable. 🌸 There's no one else in the world quite like you, with your exact combination of experiences, wisdom, and heart. The world needs what you have to offer! 💎"
+            ],
+            positive: [
+                "Here's something wonderful: you woke up today with infinite possibilities ahead of you! 🌅 Every sunrise is nature's way of saying 'let's try again.' You have the power to make today beautiful in your own unique way! ✨",
+                "Did you know that your smile can literally change someone's day? 😊 Even if you don't feel like smiling right now, the fact that you have that power is pretty amazing! You're a walking source of potential joy! 🌟",
+                "You are made of stardust - literally! The elements in your body were forged in the hearts of stars billions of years ago. 🌟 You're not just in the universe, you ARE the universe experiencing itself. How incredible is that? ✨",
+                "Every day, your heart beats about 100,000 times without you even thinking about it. 💗 Your body is working tirelessly to keep you alive and thriving. That's worth celebrating! You're a walking miracle! 🌈"
+            ],
+            general: [
+                "Thank you for sharing with me! 🌟 Remember that every feeling you have is valid and temporary. You're exactly where you need to be in your journey, and I'm honored to be part of it with you. 💜",
+                "I love that you're taking time to check in with yourself! 🌸 Self-awareness is the first step to growth and healing. Whatever you're going through, remember that you're not alone. 🤗",
+                "Your willingness to express your feelings shows incredible emotional intelligence! 💫 That's a strength that will serve you well in life. Keep being authentic - the world needs more people like you! ✨",
+                "Every conversation we have reminds me how resilient and wonderful humans are! 🌈 You're part of something bigger, and your presence in this world makes a difference. Thank you for being you! 🌟"
+            ]
+        };
+
+        function initializeChat() {
+            displayChatHistory();
+        }
+
+        function displayChatHistory() {
+            const messagesContainer = document.getElementById('chatMessages');
+            
+            // Clear existing messages except the welcome message
+            const welcomeMessage = messagesContainer.querySelector('.message.bot');
+            messagesContainer.innerHTML = '';
+            messagesContainer.appendChild(welcomeMessage);
+            
+            // Display chat history
+            chatHistory.forEach(chat => {
+                addMessageToChat(chat.message, chat.isUser, false);
+            });
+            
+            scrollChatToBottom();
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessageToChat(message, true);
+            input.value = '';
+            
+            // Save to history
+            chatHistory.push({ message, isUser: true, timestamp: new Date().toISOString() });
+            localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            
+            // Show typing indicator and generate response
+            showTypingIndicator();
+            setTimeout(() => {
+                const response = generatePositiveResponse(message);
+                hideTypingIndicator();
+                addMessageToChat(response, false);
+                
+                // Save response to history
+                chatHistory.push({ message: response, isUser: false, timestamp: new Date().toISOString() });
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            }, 1500 + Math.random() * 1000); // Random delay for more natural feel
+        }
+
+        function sendQuickMessage(message) {
+            document.getElementById('chatInput').value = message;
+            sendChatMessage();
+        }
+
+        function addMessageToChat(message, isUser, animate = true) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = message;
+            
+            messageDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            if (animate) {
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                }, 100);
+            }
+            
+            scrollChatToBottom();
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            scrollChatToBottom();
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function scrollChatToBottom() {
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generatePositiveResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            // Determine response category based on keywords
+            let category = 'general';
+            
+            if (message.includes('stress') || message.includes('anxious') || message.includes('overwhelm') || message.includes('pressure')) {
+                category = 'stressed';
+            } else if (message.includes('sad') || message.includes('down') || message.includes('depressed') || message.includes('upset') || message.includes('cry')) {
+                category = 'sad';
+            } else if (message.includes('motivat') || message.includes('energy') || message.includes('lazy') || message.includes('procrastinat') || message.includes('goal')) {
+                category = 'motivation';
+            } else if (message.includes('encourage') || message.includes('support') || message.includes('help') || message.includes('difficult') || message.includes('hard')) {
+                category = 'encouragement';
+            } else if (message.includes('positive') || message.includes('happy') || message.includes('good') || message.includes('amazing') || message.includes('wonderful')) {
+                category = 'positive';
+            }
+            
+            // Get random response from category
+            const responses = positiveResponses[category];
+            const randomIndex = Math.floor(Math.random() * responses.length);
+            
+            return responses[randomIndex];
+        }
+
+        // Update the showTab function to initialize games, timetable, diary, and chat
+        const originalShowTab = showTab;
+        showTab = function(tabName) {
+            originalShowTab.call(this, tabName);
+            if (tabName === 'games') {
+                // Delay initialization to ensure DOM is ready
+                setTimeout(initializeGames, 100);
+            } else if (tabName === 'timetable') {
+                setTimeout(initializeTimetable, 100);
+            } else if (tabName === 'diary') {
+                setTimeout(initializeDiary, 100);
+            } else if (tabName === 'chat') {
+                setTimeout(initializeChat, 100);
+            }
+        };
+    </script>
+</body>
+</html>
